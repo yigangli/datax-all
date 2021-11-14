@@ -202,6 +202,33 @@ public class ReaderProxy {
             com.alibaba.datax.common.element.Record dataXRecord, OdpsType type,
             String columnNameValue, boolean isPartitionColumn) {
         switch (type) {
+        case SMALLINT:{
+            if (isPartitionColumn) {
+                dataXRecord.addColumn(new LongColumn(columnNameValue));
+            } else {
+                dataXRecord.addColumn(new LongColumn(Long.valueOf((String.valueOf(odpsRecord.get(columnNameValue))))
+                ));
+            }
+            break;
+        }
+        case INT:{
+            if (isPartitionColumn) {
+                dataXRecord.addColumn(new LongColumn(columnNameValue));
+            } else {
+                dataXRecord.addColumn(new LongColumn(Long.valueOf((String.valueOf(odpsRecord.get(columnNameValue))))
+                ));
+            }
+            break;
+        }
+        case TINYINT: {
+            if (isPartitionColumn) {
+                dataXRecord.addColumn(new LongColumn(columnNameValue));
+            } else {
+                dataXRecord.addColumn(new LongColumn(Long.valueOf((String.valueOf(odpsRecord.get(columnNameValue))))
+                ));
+            }
+            break;
+        }
         case BIGINT: {
             if (isPartitionColumn) {
                 dataXRecord.addColumn(new LongColumn(columnNameValue));
@@ -264,6 +291,15 @@ public class ReaderProxy {
             } else {
                 dataXRecord.addColumn(new StringColumn(odpsRecord
                         .getString(columnNameValue)));
+            }
+            break;
+        }
+        case BINARY: {
+            if (isPartitionColumn) {
+                dataXRecord.addColumn(new BytesColumn(columnNameValue.getBytes()));
+            } else {
+                dataXRecord.addColumn(new BytesColumn(odpsRecord
+                    .getBytes(columnNameValue)));
             }
             break;
         }
