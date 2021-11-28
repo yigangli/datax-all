@@ -10,9 +10,12 @@ import org.apache.commons.io.Charsets;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.security.PrivilegedAction;
 import java.util.*;
 
 
@@ -31,6 +34,7 @@ public class HdfsWriter extends Writer {
         private String fieldDelimiter;
         private String compress;
         private String encoding;
+        private String proxyUser;
         private HashSet<String> tmpFiles = new HashSet<String>();//临时文件全路径
         private HashSet<String> endFiles = new HashSet<String>();//最终文件全路径
 
@@ -49,6 +53,7 @@ public class HdfsWriter extends Writer {
 
         private void validateParameter() {
             this.defaultFS = this.writerSliceConfig.getNecessaryValue(Key.DEFAULT_FS, HdfsWriterErrorCode.REQUIRED_VALUE);
+            this.proxyUser = this.writerSliceConfig.getNecessaryValue(Key.PROXY_USER, HdfsWriterErrorCode.REQUIRED_VALUE);
             //fileType check
             this.fileType = this.writerSliceConfig.getNecessaryValue(Key.FILE_TYPE, HdfsWriterErrorCode.REQUIRED_VALUE);
             if( !fileType.equalsIgnoreCase("ORC") && !fileType.equalsIgnoreCase("TEXT")){
@@ -333,13 +338,14 @@ public class HdfsWriter extends Writer {
         private String defaultFS;
         private String fileType;
         private String fileName;
+        private String proxyUser;
 
         private HdfsHelper hdfsHelper = null;
 
         @Override
         public void init() {
             this.writerSliceConfig = this.getPluginJobConf();
-
+            this.proxyUser = this.writerSliceConfig.getString(Key.PROXY_USER);
             this.defaultFS = this.writerSliceConfig.getString(Key.DEFAULT_FS);
             this.fileType = this.writerSliceConfig.getString(Key.FILE_TYPE);
             //得当的已经是绝对路径，eg：hdfs://10.101.204.12:9000/user/hive/warehouse/writer.db/text/test.textfile
@@ -355,18 +361,25 @@ public class HdfsWriter extends Writer {
         }
 
         @Override
-        public void startWrite(RecordReceiver lineReceiver) {
+        public void startWrite(RecordReceiver lineReceiver) throws IOException {
             LOG.info("begin do write...");
             LOG.info(String.format("write to file : [%s]", this.fileName));
-            if(fileType.equalsIgnoreCase("TEXT")){
-                //写TEXT FILE
-                hdfsHelper.textFileStartWrite(lineReceiver,this.writerSliceConfig, this.fileName,
-                        this.getTaskPluginCollector());
-            }else if(fileType.equalsIgnoreCase("ORC")){
-                //写ORC FILE
-                hdfsHelper.orcFileStartWrite(lineReceiver,this.writerSliceConfig, this.fileName,
-                        this.getTaskPluginCollector());
-            }
+            UserGroupInformation ugi = UserGroupInformation.createProxyUser(this.proxyUser,UserGroupInformation.getCurrentUser());
+            ugi.doAs(new PrivilegedAction<Void>() {
+                @Override public Void run() {
+                    if(fileType.equalsIgnoreCase("TEXT")){
+                        //写TEXT FILE
+                        hdfsHelper.textFileStartWrite(lineReceiver,writerSliceConfig, fileName,
+                            getTaskPluginCollector());
+                    }else if(fileType.equalsIgnoreCase("ORC")){
+                        //写ORC FILE
+                        hdfsHelper.orcFileStartWrite(lineReceiver,writerSliceConfig, fileName,
+                            getTaskPluginCollector());
+                    }
+
+                    return null;
+                }
+            });
 
             LOG.info("end do write");
         }

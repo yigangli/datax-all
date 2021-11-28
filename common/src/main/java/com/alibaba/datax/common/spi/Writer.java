@@ -6,6 +6,7 @@ import com.alibaba.datax.common.plugin.AbstractTaskPlugin;
 import com.alibaba.datax.common.util.Configuration;
 import com.alibaba.datax.common.plugin.RecordReceiver;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -33,7 +34,7 @@ public abstract class Writer extends BaseObject {
 	 */
 	public abstract static class Task extends AbstractTaskPlugin {
 
-		public abstract void startWrite(RecordReceiver lineReceiver);
+		public abstract void startWrite(RecordReceiver lineReceiver) throws IOException;
 
 		public boolean supportFailOver(){return false;}
 	}
