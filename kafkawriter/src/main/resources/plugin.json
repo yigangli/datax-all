@@ -1,6 +1,6 @@
 {
     "name": "kafkawriter",
-    "class": "org.tianyc.datax.plugin.writer.kafkawriter.KafkaWriter",
-    "description": "",
-    "developer": "Wangtao"
+    "class": "com.tyc.datax.plugin.writer.kafkawriter.KafkaWriter",
+    "description": "write data to kafka",
+    "developer": "zcreator"
 }
