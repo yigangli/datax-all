@@ -99,6 +99,7 @@
         <module>gdbwriter</module>
         <module>cassandrawriter</module>
         <module>clickhousewriter</module>
+        <module>kafkawriter</module>
 <!--        <module>oscarwriter</module>-->
         <module>oceanbasev10writer</module>
         <!-- common support module -->

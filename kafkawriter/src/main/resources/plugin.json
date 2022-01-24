@@ -1,0 +1,6 @@
+{
+    "name": "kafkawriter",
+    "class": "org.tianyc.datax.plugin.writer.kafkawriter.KafkaWriter",
+    "description": "",
+    "developer": "Wangtao"
+}
